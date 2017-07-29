@@ -124,6 +124,7 @@ if(trim)
 	discrm=discrm(indices);
 	intphase=intphase(indices);
 	lock_indicator=lock_indicator(indices);
+	sampletime=sampletime(indices);
 endif
 phasors=fliplr(phasors);
 discrm=fliplr(discrm);
@@ -132,6 +133,13 @@ lock_indicator=fliplr(lock_indicator);
 #print out some debug info 
 printf("Carrier at: %.1f Hz\n",launchcarrier+freq);
 printf("Launch at: %s\n",ctime(timelost));fflush(stdout);
+#now resample the data to 20hz, aligned to 50ms incriments UTC
+time_strt=round(sampletime(1)*20)./20;
+times=[time_strt:1/20:sampletime(end)];#50ms intervals
+phasors=interp1(sampletime,phasors,times);
+discrm=interp1(sampletime,discrm,times);
+intphase=interp1(sampletime,intphase,times);
+lock_indicator=interp1(sampletime,lock_indicator,times);#resample all of these
 endfunction
 
 function [phasors,discrm,strength,integrated_phase,lock_indicator]=track(carrier,samples,spr)
