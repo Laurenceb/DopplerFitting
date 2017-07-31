@@ -66,14 +66,16 @@ while 1
 	endif
 	#[m,indx]=max(abs(fft(aquisition_chunk)(1:floor(0.05*spr))));#find the highest frequency component - wont work due to wideband signal?
 	numsmp=size(aquisition_chunk,1);
-	window=blackmanharris(numsmp)';
+	window=blackmanharris(numsmp)';		#typical airspy tcxo + tx xtal + doppler range at 868Mhz carrier
 	search_indices=[1:floor(0.2*10000/spr)];#section of the FFT output to use
 	carriers=(search_indices.-1).*5;	#in Hz
+	numshift=length(search_indices);
 	search_indices=[search_indices,(numsmp.-search_indices.+1)];#also use the negative frequencies
 	carriers=[carriers,-(search_indices.*5)];#negative frequencies in Hz
 	strengths=abs(fft(aquisition_chunk.*window)(search_indices));#only look in the +-10kHz range
-	#carriers=[500:5:0.35*spr].-5;
-	carrier=[0:5:10000];			#typical airspy tcxo + tx xtal + doppler range at 868Mhz carrier
+	strengths=circshift(strengths,-numshift);		#to avoid possible wrap around errors around zero
+	carriers=circshift(carriers,-numshift);
+	#carriers=[500:5:0.35*spr].-5;		
 	#indx=1;
 	#loop through the carrier offsets looking ofr the best signal
 	#for m=2000:10:min([(spr/2),8000])#run through the range of the search frequencies
